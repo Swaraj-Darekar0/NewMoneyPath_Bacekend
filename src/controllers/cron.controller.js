@@ -11,6 +11,7 @@ const triggerDisciplineEngine = async (req, res, next) => {
 
     console.log('Discipline Engine triggered by Render Cron Job...');
     
+    // For a single-timezone app (India), we process all users when the job runs.
     const usersToProcess = await userModel.findAll();
     console.log(`Found ${usersToProcess.length} users to process.`);
 
@@ -23,7 +24,7 @@ const triggerDisciplineEngine = async (req, res, next) => {
       }
     }
 
-    res.status(200).json({ message: 'Discipline engine job completed.' });
+    res.status(200).json({ message: `Discipline engine job completed for ${usersToProcess.length} users.` });
   } catch (error) {
     next(error);
   }
