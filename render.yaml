@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: moneypath-backend
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ENABLE_CRON
+        value: "true" # This will be used to trigger the cron endpoint
+      - key: PORT
+        value: 10000
+      - fromGroup: moneypath-secrets
+
+databases:
+  - name: moneypath_db
+    plan: free

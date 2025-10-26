@@ -13,10 +13,12 @@ const logger = require('./config/logger');
 const routes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
 
+const corsMiddleware = require('./middleware/cors');
+
 const app = express();
 
 app.use(helmet());
-app.use(cors());
+app.use(corsMiddleware);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 

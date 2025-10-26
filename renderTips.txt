@@ -1,0 +1,90 @@
+Since your MoneyPath backend is a long-running Express + PostgreSQL + cron-powered system, deploying it on Render requires a few structural and configuration updates. These updates ensure smooth deployment, correct environment handling, and reliable background job scheduling. Below is a list of key codebase and configuration changes, including a sample render.yaml, to make your deployment production-ready on Render.
+
+Add a render.yaml File
+Create a file in your project root named render.yaml:
+
+text
+services:
+  - type: web
+    name: moneypath-backend
+    env: node
+    plan: free
+    region: oregon  # switch to singapore when available, closest to India
+    buildCommand: npm install
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ENABLE_CRON
+        value: true
+      - key: PORT
+        value: 10000
+databases:
+  - name: moneypath_db
+This creates a web service for your Express app and provisions a free PostgreSQL instance.
+
+All .env variables (Supabase, Razorpay, Sahamati, encryption, JWT, etc.) should be set in Render’s “Environment” tab.
+
+PORT = 10000 is mandatory; Render assigns internal ports automatically and exposes the app publicly on that port.
+
+Codebase Adjustments for Render Compatibility
+Server Startup (server.js)
+
+Ensure the app listens on process.env.PORT || 10000.
+
+Avoid hard-coded internal ports (e.g., 3000).
+
+Keep graceful shutdown listeners (SIGTERM, SIGINT) for clean restarts.
+
+Environment Loading
+
+Use dotenv only in development:
+
+javascript
+if (process.env.NODE_ENV !== 'production') require('dotenv').config();
+This ensures Render’s injected environment variables override .env.
+
+Database Connection
+
+Use process.env.DATABASE_URL directly for Render’s automatic DB provisioning.
+
+Ensure your pool retry logic is active (it already handles 3 retries with exponential backoff).
+
+Logging
+
+Modify your current Winston logger:
+
+keep console transport only in production (no file writes; Render’s filesystem is ephemeral).
+
+remove rotating-file transport for now or store logs externally (like Sentry or Supabase storage).
+
+Cron Jobs
+
+Since Render doesn’t guarantee continuous background job runtime in free tier, use Render Cron Jobs to trigger your Express endpoints:
+
+Example: configure /cron/disciplinesync endpoint in Express.
+
+Add a health-protected cron endpoint that internally calls your disciplineEngine.job.js logic.
+
+Then, in Render dashboard → “Cron Jobs”, add something like:
+
+text
+Every 15 minutes → GET https://moneypath-backend.onrender.com/cron/disciplinesync
+Supabase Auth and External APIs
+
+Ensure environment variables:
+
+SUPABASE_URL, SUPABASE_SERVICE_KEY, RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, etc.
+
+Avoid exposing these in code (Render keeps them secure by default).
+
+CORS
+
+Update cors.js to allow the production Flutter or web origin:
+
+javascript
+origin: ['https://app.moneypath.in', 'http://localhost:3000'],
+credentials: true
+Health Endpoint
+
+/health route already exists. Use it for Render’s Health Check endpoint to auto-detect successful startup

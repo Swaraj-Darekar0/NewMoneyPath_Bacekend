@@ -1,10 +1,12 @@
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 const app = require('./app');
 const { healthCheck } = require('./config/database');
 const logger = require('./config/logger');
-const { initializeCronJobs } = require('./cron');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 const startServer = async () => {
   if (!(await healthCheck())) {
