@@ -2,13 +2,8 @@
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
-let uuidv4;
-import('uuid').then(uuidModule => {
-  uuidv4 = uuidModule.v4;
-}).catch(error => {
-  console.error('Failed to load uuid module:', error);
-  process.exit(1); // Exit if uuid cannot be loaded
-});
+
+const { v4: uuidv4 } = require('uuid');
 const logger = require('./config/logger');
 const routes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
