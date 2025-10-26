@@ -14,7 +14,7 @@ const startServer = async () => {
     process.exit(1);
   }
 
-  initializeCronJobs(); // Start cron jobs
+ // Start cron jobs
 
   const server = app.listen(PORT, () => {
     logger.info(`Server is running on port ${PORT}`)
