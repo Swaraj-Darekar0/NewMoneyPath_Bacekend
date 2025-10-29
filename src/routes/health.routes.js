@@ -25,7 +25,22 @@ router.get('/', async (req, res, next) => {
       });
     }
   } catch (error) {
-    next(error);
+    // --- THIS IS THE FIX ---
+
+    // 1. Log the real error so you can see it in your Render logs
+    console.error("Health check CRASHED:", error);
+
+    // 2. Send a small, custom JSON error response
+    res.status(500).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: 'crashed',
+      error: error.message, // Send just the message
+      version: version,
+    });
+    
+    // Do NOT call next(error)
   }
 });
 
